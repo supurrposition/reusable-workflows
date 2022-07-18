@@ -1,0 +1,54 @@
+name: Code Checks (Next.js)
+
+on:
+  workflow_call:
+    inputs:
+      pre_install_script:
+        description: "Script to run before running `yarn install`"
+        required: false
+        type: string
+        default: 'echo "No Pre-Install Script Provided"'
+      post_install_script:
+        description: "Script to run after running `yarn install`"
+        required: false
+        type: string
+        default: 'echo "No Post-Install Script Provided"'
+      post_checks_script:
+        description: "Script to run after running all checks"
+        required: false
+        type: string
+        default: 'echo "No Post-Checks Script Provided"'
+
+jobs:
+  code_checks:
+    name: Code Checks (Next.js)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v2
+
+      - name: Install node_modules from Cache
+        uses: actions/cache@v2
+        with:
+          path: "**/node_modules"
+          key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}-checks
+
+      - name: Pre-Install Script
+        run: ${{ inputs.pre_install_script }}
+
+      # Install dependencies, bypass `npm prepare`
+      - name: "`yarn install`"
+        run: yarn install --ignore-scripts
+
+      - name: Post-Install Script
+        run: ${{ inputs.post_install_script }}
+
+      # Check TypeScript and eslint
+      - name: TypeScript Check
+        run: yarn check-typescript
+
+      - name: eslint Check
+        run: yarn check-eslint
+
+      - name: Post-Checks Script
+        run: ${{ inputs.post_checks_script }}

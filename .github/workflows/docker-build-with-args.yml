@@ -1,0 +1,64 @@
+name: Build Docker Image with Args
+
+on:
+  workflow_call:
+    inputs:
+      docker_registry:
+        description: "The Docker Registry Tag to use"
+        required: true
+        type: string
+      docker_container_name:
+        description: "The Docker Container Name to use."
+        required: true
+        type: string
+      docker_container_tag:
+        description: "The Docker Container Tag to use."
+        required: true
+        type: string
+      #
+      deploy_environment:
+        description: "The Deploy Environment that should be passed to Docker during Build Phase. If not provided, it will be automagically determined based on branch name."
+        required: false
+        type: string
+      branch_environment_map:
+        description: "If provided, extracts the current Github Branch name from the provided JSON object"
+        required: false
+        type: string
+        default: ""
+      build_id:
+        description: "The Build ID that should be passed to Docker during Build Phase."
+        required: true
+        type: string
+
+env:
+  DOCKER_BUILDKIT: 1
+
+jobs:
+  build_and_publish:
+    name: Docker Build & Publish
+    runs-on: ubuntu-latest
+    env:
+      CONTAINER_FQN: ${{ inputs.docker_registry }}/${{ inputs.docker_container_name }}:${{ inputs.docker_container_tag }}
+    steps:
+      # This checks out the repository so your workflow operates from root of repository
+      - uses: actions/checkout@v2
+
+      - name: Determine Deploy Env
+        run: echo "DEPLOY_ENV=$(./extract-value-from-map.sh -d ${{ inputs.deploy_environment }} -k ${{ github.base_ref }} -m ${{ inputs.branch_environment_map }})" >> $GITHUB_ENV
+
+      - name: Login to Docker Registry
+        uses: azure/docker-login@v1
+        with:
+          login-server: ${{ inputs.docker_registry }}
+          username: ${{ secrets.DOCKER_REGISTRY_USERNAME }}
+          password: ${{ secrets.DOCKER_REGISTRY_PASSWORD }}
+
+      - name: Build & Push Image
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          push: true
+          tags: ${{ env.CONTAINER_FQN }}
+          build-args: |
+            DEPLOY_ENV=${{ inputs.deploy_environment }}
+            BUILD_ID=${{ inputs.build_id }}
