@@ -50,9 +50,15 @@ jobs:
       # This checks out the repository so your workflow operates from root of repository
       - uses: actions/checkout@v2
 
+      - name: Download map extractor
+        run: |
+          pwd
+          curl -o $PWD/map-extract.sh https://raw.githubusercontent.com/Jockey/reusable-workflows/master/scripts/bash/extract-value-from-map.sh
+          chmod +x $PWD/map-extract.sh
+
       - name: Determine Deploy Env
         run: |
-          echo "DEPLOY_ENV=$(./extract-value-from-map.sh -k '${{ github.base_ref }}' -m '${{ inputs.branch_environment_map }}' -d '${{ inputs.deploy_environment }}')" >> $GITHUB_ENV
+          echo "DEPLOY_ENV=$($PWD/map-extract.sh -k '${{ github.base_ref }}' -m '${{ inputs.branch_environment_map }}' -d '${{ inputs.deploy_environment }}')" >> $GITHUB_ENV
           echo "Deploy ENV is now: ${{ env.DEPLOY_ENV }}"
 
       - name: Login to Docker Registry
