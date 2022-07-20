@@ -16,6 +16,12 @@ on:
         required: true
         type: string
       #
+      docker_file_name:
+        description: "The Dockerfile filename to use, relative to the repo root."
+        required: false
+        type: string
+        default: "Dockerfile"
+      #
       deploy_environment:
         description: "The Deploy Environment that should be passed to Docker during Build Phase. If not provided, it will be automagically determined based on branch name."
         required: false
@@ -59,6 +65,7 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           context: .
+          file: ${{ inputs.docker_file_name }}
           push: true
           tags: ${{ env.CONTAINER_FQN }}
           build-args: |
