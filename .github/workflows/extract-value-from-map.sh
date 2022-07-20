@@ -5,6 +5,7 @@
 # -b and -k are required if -d not provided
 
 verbose=""
+default=""
 
 # Extract Args to nicer variables
 while getopts k:m:d:v flag; do

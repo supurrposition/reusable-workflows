@@ -26,6 +26,7 @@ on:
         description: "The Deploy Environment that should be passed to Docker during Build Phase. If not provided, it will be automagically determined based on branch name."
         required: false
         type: string
+        default: ""
       branch_environment_map:
         description: "If provided, extracts the current Github Branch name from the provided JSON object"
         required: false
@@ -51,7 +52,7 @@ jobs:
 
       - name: Determine Deploy Env
         run: |
-          echo "DEPLOY_ENV=$(./extract-value-from-map.sh -d ${{ inputs.deploy_environment }} -k ${{ github.base_ref }} -m ${{ inputs.branch_environment_map }})" >> $GITHUB_ENV
+          echo "DEPLOY_ENV=$(./extract-value-from-map.sh -k '${{ github.base_ref }}' -m '${{ inputs.branch_environment_map }}' -d '${{ inputs.deploy_environment }}')" >> $GITHUB_ENV
           echo "Deploy ENV is now: ${{ env.DEPLOY_ENV }}"
 
       - name: Login to Docker Registry
