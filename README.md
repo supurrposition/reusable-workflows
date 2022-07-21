@@ -23,3 +23,5 @@ With the given information, it will run a `Dockerfile` in the root of the curren
 
 ## docker-deploy-to-azure-app.yml
 Given a Docker Container fully qualified name, it will deploy that image to the configured Azure App Service
+
+##publictest
